@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>CREATE: FRONTLINE</title>
+<style>
+:root{--bg:#071018;--panel:#101c27;--line:#2b4050;--blue:#55b8ff;--red:#ff655b;--green:#75e6a0;--text:#e8f1f7;--muted:#8fa3b3}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#142838,#050a0f 75%);color:var(--text);font:14px/1.4 system-ui,Arial}
+button{font:inherit;color:inherit;background:#1a2b39;border:1px solid #354d5f;border-radius:7px;padding:9px;cursor:pointer}
+button:hover{border-color:var(--blue)}
+.app{max-width:1500px;margin:auto;padding:10px;display:grid;gap:10px}
+.top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.panel,.brand,.team,.mapbox{background:#101c27eF;border:1px solid var(--line);border-radius:10px;padding:12px}
+h1{font-size:24px;margin:0}h1 span{color:var(--blue)}
+.sub,small{color:var(--muted)}
+.team{text-align:center}.blue{border-top:2px solid var(--blue)}.red{border-top:2px solid var(--red)}
+.roles{display:flex;justify-content:space-around;margin-top:8px;font-size:12px}
+.layout{display:grid;grid-template-columns:210px 1fr 210px;gap:10px}
+.side{display:grid;gap:10px;align-content:start}
+.mapbox{padding:0;position:relative;overflow:hidden;min-height:400px}
+canvas{width:100%;height:100%;min-height:400px;display:block}
+.maphead{position:absolute;top:10px;left:10px;background:#07121bd9;padding:7px;z-index:2}
+.resource{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #263845;font-size:12px}
+.buildgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.build{text-align:left;min-height:100px}.build b,.build small{display:block}.build .emoji{font-size:24px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.tabs .active{border-color:var(--blue);color:var(--blue)}
+.mainbottom{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.unit{display:flex;align-items:center;gap:8px;border:1px solid var(--line);padding:8px;margin:6px 0;border-radius:7px}
+.unit button{margin-left:auto}.log{max-height:120px;overflow:auto;font-size:12px}
+.objective{padding:8px;margin:6px 0;background:#0b1720;border:1px solid var(--line);border-radius:6px}
+.soldiers{display:flex;gap:8px;flex-wrap:wrap}.soldier{flex:1;min-width:70px;text-align:center;background:#0b1720;padding:10px;border:1px solid var(--line);border-radius:7px}
+.soldier span{display:block;font-size:25px}
+.chatrow{display:flex;gap:5px;margin-top:8px}.chatrow input{min-width:0;width:100%;background:#08121a;color:white;padding:8px;border:1px solid var(--line)}
+.music{position:fixed;bottom:12px;right:12px;z-index:5;border-color:var(--blue)}
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#123044;padding:10px;border-radius:8px;display:none}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1}.side{grid-template-columns:1fr 1fr}.mapbox,canvas{min-height:330px}.mainbottom{grid-template-columns:1fr}}
+@media(max-width:500px){.app{padding:6px}.top{gap:6px}.team{padding:7px 3px}.roles{font-size:10px}.side{grid-template-columns:1fr}.buildgrid{grid-template-columns:repeat(2,1fr)}h1{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<section class="brand"><h1>CREATE: <span>FRONTLINE</span></h1><div class="sub">Современная командная стратегия · 0.1</div></section>
+<section class="team blue"><b style="color:var(--blue)">СИНЯЯ КОМАНДА</b><div class="roles"><span>✈️ Авиация</span><span>🛡️ Армия</span><span>📈 Экономика</span></div><small>Ваша сторона</small></section>
+<section class="team red"><b style="color:var(--red)">КРАСНАЯ КОМАНДА</b><div class="roles"><span>✈️ Авиация</span><span>🛡️ Армия</span><span>📈 Экономика</span></div><small>Компьютерный соперник</small></section>
+</header>
+
+<div class="layout">
+<aside class="side">
+<section class="panel"><h3>РЕСУРСЫ</h3>
+<div class="resource"><span>🪙 Деньги</span><b id="money">4000</b></div>
+<div class="resource"><span>⚡ Энергия</span><b id="energy">120</b></div>
+<div class="resource"><span>🔬 Технологии</span><b id="tech">0</b></div>
+<div class="resource"><span>🏭 Доход</span><b id="income">100/мин</b></div>
+<div class="resource"><span>🪖 Подразделения</span><b id="count">2</b></div>
+</section>
+<section class="panel"><h3>ЖУРНАЛ</h3><div class="log" id="log">Штаб создан.</div>
+<div class="chatrow"><input id="chat" placeholder="Сообщение..."><button id="send">➤</button></div></section>
+</aside>
+
+<main class="mapbox"><div class="maphead">◈ ТАКТИЧЕСКАЯ КАРТА</div><canvas id="map"></canvas></main>
+
+<aside class="side">
+<section class="panel"><h3>СВЕДЕНИЯ О РАЙОНЕ</h3><b id="selected">Главная база</b><p class="sub" id="desc">Ваш командный центр</p><div class="resource"><span>Состояние</span><b>100%</b></div><button id="inspect">Осмотреть район</button></section>
+<section class="panel"><h3>ЗАДАЧИ</h3><div class="objective">① Развить экономику</div><div class="objective">② Изучить технологии</div><div class="objective">③ Исследовать карту</div><button id="turn" style="width:100%">⏩ Следующий этап</button></section>
+</aside>
+</div>
+
+<div class="mainbottom">
+<section class="panel"><div class="tabs" id="tabs">
+<button class="active" data-tab="economy">ЭКОНОМИКА</button><button data-tab="army">АРМИЯ</button><button data-tab="air">АВИАЦИЯ</button><button data-tab="tech">ТЕХНОЛОГИИ</button></div>
+<h3 id="heading">СТРОИТЕЛЬСТВО</h3><div class="buildgrid" id="builds"></div></section>
+<section class="panel"><h3>ВАШИ ПОДРАЗДЕЛЕНИЯ</h3><div id="units"></div></section>
+</div>
+
+<section class="panel"><h3>СОЛДАТЫ И СПЕЦИАЛИСТЫ</h3><div class="soldiers">
+<div class="soldier"><span>🪖</span>Штурмовик</div><div class="soldier"><span>🧰</span>Инженер</div><div class="soldier"><span>🩺</span>Медик</div><div class="soldier"><span>🥷</span>Разведчик</div><div class="soldier"><span>🎖️</span>Командир</div>
+</div><h3>АВИАЦИЯ</h3><div class="soldiers"><div class="soldier"><span>🛩️</span>Истребитель</div><div class="soldier"><span>🚁</span>Вертолёт</div><div class="soldier"><span>🛰️</span>Дрон</div></div></section>
+<footer class="sub">CREATE: FRONTLINE · Прототип · Мультиплеер пока не подключён</footer>
+</div>
+
+<button class="music" id="music">♫ Музыка: выкл.</button>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const state={money:4000,energy:120,tech:0,income:100,turn:1,tab:"economy",units:[{name:"Пехотное отделение",icon:"🪖",type:"army"},{name:"Разведывательный дрон",icon:"🛰️",type:"air"}],buildings:{}};
+const catalog={
+economy:[
+{id:"plant",name:"Электростанция",icon:"⚡",cost:600,desc:"+40 энергии",run:()=>state.energy+=40},
+{id:"factory",name:"Фабрика",icon:"🏭",cost:900,desc:"+80 дохода",run:()=>state.income+=80},
+{id:"bank",name:"Финансовый центр",icon:"🏦",cost:700,desc:"+45 дохода",run:()=>state.income+=45}],
+army:[
+{name:"Пехотное отделение",icon:"🪖",cost:500,type:"army"},
+{name:"Инженерная группа",icon:"🧰",cost:650,type:"army"},
+{name:"Бронемашина",icon:"🚙",cost:1000,type:"army"}],
+air:[
+{name:"Разведывательный дрон",icon:"🛰️",cost:700,type:"air"},
+{name:"Истребитель",icon:"🛩️",cost:1500,type:"air"},
+{name:"Транспортный вертолёт",icon:"🚁",cost:1200,type:"air"}],
+tech:[
+{id:"lab",name:"Исследовательский центр",icon:"🔬",cost:800,desc:"+1 технология",run:()=>state.tech++},
+{id:"comms",name:"Система связи",icon:"📶",cost:500,desc:"+20 энергии",run:()=>{state.energy+=20;state.tech++}},
+{id:"plan",name:"Планирование",icon:"🧠",cost:600,desc:"+3 технологии",run:()=>state.tech+=3}]};
+
+function log(s){let e=document.createElement("div");e.textContent="Этап "+state.turn+" · "+s;$("log").prepend(e)}
+function toast(s){$("toast").textContent=s;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",1800)}
+function stats(){
+$("money").textContent=Math.floor(state.money).toLocaleString("ru-RU");
+$("energy").textContent=state.energy;$("tech").textContent=state.tech;
+$("income").textContent="+"+state.income+"/мин";$("count").textContent=state.units.length}
+function renderCatalog(){
+$("builds").innerHTML="";
+$("heading").textContent=({economy:"СТРОИТЕЛЬСТВО И ЭКОНОМИКА",army:"НАЗЕМНЫЕ ПОДРАЗДЕЛЕНИЯ",air:"АВИАЦИОННЫЕ ПОДРАЗДЕЛЕНИЯ",tech:"ТЕХНОЛОГИИ"})[state.tab];
+catalog[state.tab].forEach(item=>{
+let b=document.createElement("button");b.className="build";
+b.innerHTML='<span class="emoji">'+item.icon+'</span><b>'+item.name+'</b><small>'+item.cost+' игровых денег</small><small>'+ (item.desc||"Новое подразделение")+'</small>';
+b.onclick=()=>buy(item);$("builds").append(b)});
+document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===state.tab))}
+function buy(item){
+if(state.money<item.cost){toast("Не хватает денег! Развивайте экономику.");return}
+state.money-=item.cost;
+if(item.type){state.units.push({name:item.name,icon:item.icon,type:item.type});log("Создано: "+item.name)}
+else{state.buildings[item.id]=(state.buildings[item.id]||0)+1;if(item.run)item.run();log("Построено: "+item.name)}
+stats();renderUnits();renderCatalog();toast(item.name+" готово")}
+function renderUnits(){
+$("units").innerHTML="";
+state.units.forEach(u=>{let d=document.createElement("div");d.className="unit";
+let label=document.createElement("span");label.textContent=u.icon;
+let name=document.createElement("b");name.textContent=u.name;
+let button=document.createElement("button");button.textContent="Выбрать";
+button.onclick=()=>{ $("selected").textContent=u.name;$("desc").textContent=u.type==="air"?"Авиационное подразделение":"Наземное подразделение";toast("Выбрано: "+u.name)};
+d.append(label,name,button);$("units").append(d)})}
+
+const sites=[
+{x:.22,y:.38,name:"Главная база",desc:"Ваш командный центр",color:"#55b8ff"},
+{x:.72,y:.28,name:"Северный перевал",desc:"Горная контрольная точка",color:"#ff655b"},
+{x:.56,y:.69,name:"Центральный мост",desc:"Переход через реку",color:"#e6c77a"},
+{x:.82,y:.68,name:"Промышленный район",desc:"Зона ресурсов",color:"#ff655b"},
+{x:.35,y:.72,name:"Лесной аванпост",desc:"Лесная контрольная точка",color:"#55b8ff"}];
+
+function drawMap(){
+let c=$("map"),r=c.getBoundingClientRect();if(!r.width)return;
+let d=Math.min(devicePixelRatio||1,2);c.width=r.width*d;c.height=r.height*d;
+let x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);
+let w=r.width,h=r.height,seed=24;
+function rand(){seed=(seed*9301+49297)%233280;return seed/233280}
+x.fillStyle="#173c3b";x.fillRect(0,0,w,h);
+for(let i=0;i<100;i++){
+let a=rand()*w,b=rand()*h,z=15+rand()*65;
+x.beginPath();x.ellipse(a,b,z,z*.6,rand()*3,0,Math.PI*2);
+x.fillStyle=["#204b3f","#2a5544","#315b46","#24483f","#52634a"][Math.floor(rand()*5)];x.fill();
+x.strokeStyle="#8b9b70";x.globalAlpha=.25;x.stroke();x.globalAlpha=1}
+for(let i=0;i<17;i++){
+let a=rand()*w,b=rand()*h*.8;
+x.beginPath();x.moveTo(a-28,b+23);x.lineTo(a,b-30-rand()*18);x.lineTo(a+34,b+23);x.closePath();
+x.fillStyle="#64756c";x.fill();
+x.beginPath();x.moveTo(a,b-30);x.lineTo(a+9,b+2);x.lineTo(a-4,b-3);x.closePath();x.fillStyle="#c4c9bb";x.fill()}
+x.beginPath();x.moveTo(-10,h*.18);x.bezierCurveTo(w*.32,h*.34,w*.12,h*.57,w*.46,h*.56);x.bezierCurveTo(w*.7,h*.56,w*.65,h*.85,w+10,h*.76);
+x.strokeStyle="#397d91";x.lineWidth=18;x.stroke();x.strokeStyle="#66a9b4";x.lineWidth=2;x.stroke();
+x.lineWidth=3;x.strokeStyle="#a99b75";x.beginPath();
+x.moveTo(w*.22,h*.38);x.lineTo(w*.38,h*.5);x.lineTo(w*.56,h*.69);x.lineTo(w*.82,h*.68);
+x.moveTo(w*.38,h*.5);x.lineTo(w*.72,h*.28);x.lineTo(w*.82,h*.68);
+x.moveTo(w*.22,h*.38);x.lineTo(w*.35,h*.72);x.stroke();
+sites.forEach(s=>{let a=s.x*w,b=s.y*h;x.beginPath();x.arc(a,b,15,0,7);x.fillStyle=s.color+"33";x.fill();x.strokeStyle=s.color;x.lineWidth=2;x.stroke();x.fillStyle=s.color;x.fillRect(a-4,b-4,8,8);x.font="11px system-ui";x.fillStyle="white";x.fillText(s.name,a+18,b+4)});
+}
+$("map").addEventListener("click",e=>{
+let r=$("map").getBoundingClientRect(),a=(e.clientX-r.left)/r.width,b=(e.clientY-r.top)/r.height,best=null,dist=.06;
+sites.forEach(s=>{let d=Math.hypot(a-s.x,b-s.y);if(d<dist){dist=d;best=s}});
+if(best){$("selected").textContent=best.name;$("desc").textContent=best.desc}
+else{$("selected").textContent="Неизведанный участок";$("desc").textContent="Холмы, леса и дороги"}});
+$("tabs").onclick=e=>{let b=e.target.closest("[data-tab]");if(b){state.tab=b.dataset.tab;renderCatalog()}};
+$("turn").onclick=()=>{state.turn++;state.money+=state.income;state.energy=Math.max(0,state.energy-2);stats();log("Начался новый этап. Доход +"+state.income);toast("Доход начислен")};
+$("inspect").onclick=()=>{log("Проведена разведка района");toast("Разведданные обновлены")};
+function send(){let i=$("chat"),v=i.value.trim();if(v){log("Вы: "+v);i.value=""}}
+$("send").onclick=send;$("chat").onkeydown=e=>{if(e.key==="Enter")send()};
+window.addEventListener("resize",drawMap);
+stats();renderCatalog();renderUnits();drawMap();
+setInterval(()=>{state.money+=state.income/60;stats()},1000);
+
+// Атмосферная музыка генерируется браузером — без платных файлов.
+let audio=null,musicOn=false,musicTimer=null,step=0;
+function tone(freq,start,duration,type,volume){
+if(!audio)return;
+let o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;
+g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.25);g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+o.connect(g);g.connect(audio.destination);o.start(start);o.stop(start+duration+.05)}
+function bar(){
+if(!musicOn||!audio)return;
+let now=audio.currentTime,roots=[110,98,130.81,87.31,110,146.83,98,116.54],root=roots[step++%roots.length];
+tone(root,now,3.2,"sine",.035);tone(root*1.5,now+.4,2.4,"triangle",.012);tone(root*2,now+1,1.8,"sine",.009)}
+$("music").onclick=async()=>{
+if(!musicOn){
+let AC=window.AudioContext||window.webkitAudioContext;
+if(!AC){toast("Аудио не поддерживается");return}
+audio=audio||new AC();await audio.resume();musicOn=true;bar();musicTimer=setInterval(bar,3200);$("music").textContent="♫ Музыка: вкл."}
+else{musicOn=false;clearInterval(musicTimer);await audio.suspend();$("music").textContent="♫ Музыка: выкл."}};
+</script>
+</body>
+</html>
